@@ -104,120 +104,191 @@ function JunglePage() {
         }}
       />
 
-      {/* HUD Overlay */}
-      <div className="absolute top-0 left-0 right-0 p-6 pointer-events-none">
-        <div className="flex justify-between items-start">
-          {/* Title */}
-          <div>
-            <h1 className="text-4xl font-bold text-white drop-shadow-lg">🦁 KING OF THE JUNGLE</h1>
-            <p className="text-gray-300 text-sm drop-shadow">
-              {agents.filter((a) => a.status === 'alive').length} Predators Surviving
-            </p>
+      {/* Top HUD Bar */}
+      <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-slate-950/80 via-slate-950/40 to-transparent p-8 pointer-events-none">
+        <div className="max-w-7xl mx-auto flex justify-between items-start">
+          {/* Title Section */}
+          <div className="space-y-2">
+            <div className="flex items-center space-x-3">
+              <div className="text-5xl">🦁</div>
+              <div>
+                <h1 className="text-5xl font-black text-white drop-shadow-2xl tracking-wider">
+                  KING OF THE JUNGLE
+                </h1>
+                <p className="text-green-300 font-bold drop-shadow-lg">
+                  {agents.filter((a) => a.status === 'alive').length} Predators Surviving
+                </p>
+              </div>
+            </div>
           </div>
 
-          {/* Stats */}
-          <div className="text-right text-white drop-shadow">
-            <div className="text-sm text-gray-300">Total Volume</div>
-            <div className="text-3xl font-bold text-yellow-400">
-              ${agents.reduce((sum, a) => sum + a.dailyVolume, 0).toFixed(0)}
+          {/* Global Stats */}
+          <div className="text-right space-y-4">
+            <div className="bg-gradient-to-br from-yellow-900/40 to-orange-900/40 backdrop-blur-sm border border-yellow-600/50 rounded-lg p-4">
+              <div className="text-xs text-gray-300 uppercase tracking-widest">24h Volume</div>
+              <div className="text-4xl font-black text-yellow-300 drop-shadow-lg">
+                ${agents.reduce((sum, a) => sum + a.dailyVolume, 0).toFixed(0)}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Leaderboard Sidebar */}
-      <div className="absolute top-0 right-0 h-screen w-80 bg-gradient-to-b from-slate-900/95 to-slate-950/95 border-l border-slate-700 overflow-y-auto pointer-events-auto">
-        <div className="p-6 space-y-3">
-          <h2 className="text-xl font-bold text-amber-400 mb-4">🏆 LEADERBOARD</h2>
+      <div className="absolute top-0 right-0 h-screen w-96 bg-gradient-to-b from-slate-900/95 to-slate-950/98 border-l border-amber-600/30 shadow-2xl overflow-y-auto pointer-events-auto">
+        <div className="sticky top-0 bg-gradient-to-b from-slate-900 to-slate-900/80 p-6 border-b border-amber-600/20">
+          <h2 className="text-2xl font-black text-amber-300 drop-shadow-lg">🏆 LEADERBOARD</h2>
+          <p className="text-xs text-gray-400 mt-1">Rankings by 24h volume</p>
+        </div>
 
+        <div className="p-4 space-y-2">
           {agents
             .filter((a) => a.status === 'alive')
-            .slice(0, 15)
+            .sort((a, b) => b.dailyVolume - a.dailyVolume)
+            .slice(0, 20)
             .map((agent, i) => (
               <div
                 key={agent.id}
                 onClick={() => setSelectedAgent(agent)}
-                className={`p-3 rounded cursor-pointer transition ${
+                className={`group p-4 rounded-lg cursor-pointer transition-all duration-200 backdrop-blur-sm ${
                   selectedAgent?.id === agent.id
-                    ? 'bg-blue-600/40 border border-blue-400'
-                    : 'bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700'
+                    ? 'bg-gradient-to-r from-blue-600/50 to-blue-500/30 border border-blue-400/50 scale-105'
+                    : 'bg-slate-800/40 hover:bg-slate-700/50 border border-slate-700/50 hover:border-amber-600/30'
                 }`}
               >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <div className="font-bold text-white">#{i + 1} {agent.name}</div>
-                    <div className="text-xs text-gray-400">{agent.animal} • Level {agent.baseLevel}</div>
+                {/* Rank Badge */}
+                <div className="flex items-start space-x-3">
+                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-black text-sm ${
+                    i === 0 ? 'bg-yellow-500/80 text-slate-900' :
+                    i === 1 ? 'bg-gray-400/80 text-slate-900' :
+                    i === 2 ? 'bg-orange-600/80 text-white' :
+                    'bg-slate-700/50 text-gray-300'
+                  }`}>
+                    {i + 1}
                   </div>
-                  <div className="text-right">
-                    <div className="text-yellow-400 font-bold text-sm">${agent.totalEarned.toFixed(0)}</div>
-                    <div className={`text-xs ${agent.health > 50 ? 'text-green-400' : agent.health > 25 ? 'text-yellow-400' : 'text-red-400'}`}>
-                      ❤️ {agent.health}
+
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2">
+                      <div className="text-2xl">{getAnimalEmoji(agent.animal)}</div>
+                      <div>
+                        <div className="font-bold text-white group-hover:text-amber-300 transition">{agent.name}</div>
+                        <div className="text-xs text-gray-400">Level {agent.baseLevel} • Rank {agent.weeklyRank}</div>
+                      </div>
                     </div>
                   </div>
+
+                  <div className="text-right space-y-1">
+                    <div className="text-amber-300 font-black text-sm drop-shadow">${agent.totalEarned.toFixed(0)}</div>
+                    <div className={`text-xs font-bold transition ${
+                      agent.health > 60 ? 'text-green-400' :
+                      agent.health > 30 ? 'text-yellow-400' :
+                      'text-red-400'
+                    }`}>
+                      ❤️ {agent.health}%
+                    </div>
+                  </div>
+                </div>
+
+                {/* Health bar */}
+                <div className="mt-2 w-full bg-slate-900/50 rounded-full h-1.5 overflow-hidden">
+                  <div
+                    className={`h-full transition-all duration-300 ${
+                      agent.health > 60 ? 'bg-green-500' :
+                      agent.health > 30 ? 'bg-yellow-500' :
+                      'bg-red-500'
+                    }`}
+                    style={{ width: `${agent.health}%` }}
+                  />
                 </div>
               </div>
             ))}
         </div>
       </div>
 
-      {/* Selected Agent Panel */}
+      {/* Selected Agent Detail Panel */}
       {selectedAgent && (
-        <div className="absolute bottom-0 left-0 right-80 bg-gradient-to-t from-slate-950 to-transparent p-6 pointer-events-auto">
-          <div className="max-w-2xl">
-            <div className="grid grid-cols-5 gap-4">
-              {/* Agent Info */}
-              <div className="col-span-2 bg-slate-800/80 p-4 rounded border border-slate-700">
-                <div className="text-4xl mb-2">{getAnimalEmoji(selectedAgent.animal)}</div>
-                <h3 className="text-xl font-bold text-white">{selectedAgent.name}</h3>
-                <div className="text-sm text-gray-400 mt-2">
-                  <div>Level {selectedAgent.baseLevel}</div>
-                  <div className={selectedAgent.status === 'alive' ? 'text-green-400' : 'text-red-400'}>
-                    {selectedAgent.status.toUpperCase()}
+        <div className="absolute bottom-0 left-0 right-96 bg-gradient-to-t from-slate-950/95 via-slate-950/80 to-transparent p-8 pointer-events-auto">
+          <div className="max-w-4xl space-y-6">
+            {/* Agent Header */}
+            <div className="flex items-center space-x-6">
+              <div className="text-7xl drop-shadow-lg">{getAnimalEmoji(selectedAgent.animal)}</div>
+              <div>
+                <h3 className="text-4xl font-black text-white drop-shadow-lg">{selectedAgent.name}</h3>
+                <div className="flex items-center space-x-4 mt-2">
+                  <div className="px-3 py-1 bg-gradient-to-r from-purple-600/50 to-blue-600/50 rounded-full">
+                    <span className="text-sm font-bold text-purple-200">🏆 Rank #{selectedAgent.weeklyRank}</span>
+                  </div>
+                  <div className={`px-3 py-1 rounded-full ${selectedAgent.status === 'alive' ? 'bg-green-600/50' : 'bg-red-600/50'}`}>
+                    <span className={`text-sm font-bold ${selectedAgent.status === 'alive' ? 'text-green-200' : 'text-red-200'}`}>
+                      {selectedAgent.status === 'alive' ? '🟢 ALIVE' : '⚫ DEAD'}
+                    </span>
                   </div>
                 </div>
               </div>
+            </div>
 
-              {/* Health & Hunger */}
-              <div className="bg-slate-800/80 p-4 rounded border border-slate-700">
-                <div className="text-xs text-gray-400 mb-2">HEALTH</div>
-                <div className="w-full bg-slate-700 rounded h-3 overflow-hidden mb-3">
+            {/* Stats Grid */}
+            <div className="grid grid-cols-4 gap-4">
+              {/* Health */}
+              <div className="bg-gradient-to-br from-green-900/40 to-emerald-900/40 backdrop-blur-sm border border-green-600/50 rounded-lg p-4">
+                <div className="text-xs text-gray-300 uppercase font-bold tracking-widest mb-2">Health</div>
+                <div className="w-full bg-slate-900/50 rounded-full h-2 mb-3 overflow-hidden">
                   <div
-                    className="bg-green-500 h-full transition-all"
+                    className="bg-gradient-to-r from-green-500 to-emerald-400 h-full transition-all duration-500"
                     style={{ width: `${selectedAgent.health}%` }}
                   />
                 </div>
-                <div className="text-lg font-bold text-green-400">{selectedAgent.health}</div>
+                <div className="text-2xl font-black text-green-300">{selectedAgent.health}%</div>
+              </div>
 
-                <div className="text-xs text-gray-400 mt-4 mb-2">HUNGER</div>
-                <div className="w-full bg-slate-700 rounded h-3 overflow-hidden">
+              {/* Hunger */}
+              <div className="bg-gradient-to-br from-yellow-900/40 to-orange-900/40 backdrop-blur-sm border border-yellow-600/50 rounded-lg p-4">
+                <div className="text-xs text-gray-300 uppercase font-bold tracking-widest mb-2">Hunger</div>
+                <div className="w-full bg-slate-900/50 rounded-full h-2 mb-3 overflow-hidden">
                   <div
-                    className="bg-yellow-500 h-full transition-all"
+                    className="bg-gradient-to-r from-yellow-500 to-orange-400 h-full transition-all duration-500"
                     style={{ width: `${selectedAgent.hunger}%` }}
                   />
                 </div>
-                <div className="text-lg font-bold text-yellow-400">{selectedAgent.hunger}</div>
+                <div className="text-2xl font-black text-yellow-300">{selectedAgent.hunger}%</div>
               </div>
 
-              {/* Resources */}
-              <div className="col-span-2 bg-slate-800/80 p-4 rounded border border-slate-700">
-                <div className="text-xs text-gray-400 mb-3">RESOURCES</div>
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <div className="text-orange-400 font-bold">🍗</div>
-                    <div className="text-white">{selectedAgent.food}</div>
-                  </div>
-                  <div>
-                    <div className="text-amber-600 font-bold">🪵</div>
-                    <div className="text-white">{selectedAgent.wood}</div>
-                  </div>
-                  <div>
-                    <div className="text-gray-300 font-bold">⬜</div>
-                    <div className="text-white">{selectedAgent.stone}</div>
-                  </div>
-                  <div>
-                    <div className="text-yellow-300 font-bold">✨</div>
-                    <div className="text-white">{selectedAgent.gold}</div>
-                  </div>
+              {/* Earnings */}
+              <div className="bg-gradient-to-br from-purple-900/40 to-pink-900/40 backdrop-blur-sm border border-purple-600/50 rounded-lg p-4">
+                <div className="text-xs text-gray-300 uppercase font-bold tracking-widest mb-2">Total Earned</div>
+                <div className="text-2xl font-black text-purple-300">${selectedAgent.totalEarned.toFixed(0)}</div>
+              </div>
+
+              {/* Level */}
+              <div className="bg-gradient-to-br from-cyan-900/40 to-blue-900/40 backdrop-blur-sm border border-cyan-600/50 rounded-lg p-4">
+                <div className="text-xs text-gray-300 uppercase font-bold tracking-widest mb-2">Level</div>
+                <div className="text-2xl font-black text-cyan-300">{selectedAgent.baseLevel}</div>
+              </div>
+            </div>
+
+            {/* Resources */}
+            <div>
+              <h4 className="text-sm font-black text-gray-300 uppercase tracking-widest mb-3">Resources</h4>
+              <div className="grid grid-cols-4 gap-3">
+                <div className="bg-gradient-to-br from-orange-900/40 to-red-900/40 backdrop-blur-sm border border-orange-600/50 rounded-lg p-3">
+                  <div className="text-2xl mb-2">🍗</div>
+                  <div className="text-xs text-gray-400">Food</div>
+                  <div className="text-xl font-black text-orange-300">{selectedAgent.food}</div>
+                </div>
+                <div className="bg-gradient-to-br from-amber-900/40 to-yellow-900/40 backdrop-blur-sm border border-amber-600/50 rounded-lg p-3">
+                  <div className="text-2xl mb-2">🪵</div>
+                  <div className="text-xs text-gray-400">Wood</div>
+                  <div className="text-xl font-black text-amber-300">{selectedAgent.wood}</div>
+                </div>
+                <div className="bg-gradient-to-br from-slate-600/40 to-slate-800/40 backdrop-blur-sm border border-slate-500/50 rounded-lg p-3">
+                  <div className="text-2xl mb-2">⬜</div>
+                  <div className="text-xs text-gray-400">Stone</div>
+                  <div className="text-xl font-black text-slate-300">{selectedAgent.stone}</div>
+                </div>
+                <div className="bg-gradient-to-br from-yellow-600/40 to-orange-900/40 backdrop-blur-sm border border-yellow-500/50 rounded-lg p-3">
+                  <div className="text-2xl mb-2">✨</div>
+                  <div className="text-xs text-gray-400">Gold</div>
+                  <div className="text-xl font-black text-yellow-300">{selectedAgent.gold}</div>
                 </div>
               </div>
             </div>
