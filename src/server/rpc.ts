@@ -19,9 +19,7 @@ export const getAgentFn = createServerFn('GET', async (agentId: string) => {
     if (!agent) {
       return { success: false, error: 'Agent not found' };
     }
-
-    const launches = agentService.getAgentLaunches(agentId, 10);
-    return { success: true, data: { agent, launches } };
+    return { success: true, data: { agent, launches: [] } };
   } catch (error) {
     return {
       success: false,
@@ -42,41 +40,24 @@ export const getLeaderboardFn = createServerFn('GET', async () => {
   }
 });
 
-export const launchTokenFn = createServerFn(
-  'POST',
-  async (params: {
-    agentId: string;
-    tokenName: string;
-    tokenSymbol: string;
-    initialSupply: number;
-    agentEarned: number;
-  }) => {
-    try {
-      const launch = agentService.launchToken(
-        params.agentId,
-        params.tokenName,
-        params.tokenSymbol,
-        params.initialSupply,
-        params.agentEarned,
-      );
-      return { success: true, data: launch };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
-    }
-  },
-);
+// Start simulation loop on server init
+let simulationInterval: NodeJS.Timeout | null = null;
 
-export const getAgentLaunchesFn = createServerFn('GET', async (agentId: string) => {
-  try {
-    const launches = agentService.getAgentLaunches(agentId, 50);
-    return { success: true, data: launches };
-  } catch (error) {
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
-  }
-});
+export function startSimulation() {
+  if (simulationInterval) return;
+
+  console.log('[Game] Starting simulation loop (5 min ticks)');
+
+  // Run immediately
+  agentService.simulationTick();
+
+  // Then run every 5 minutes (or every 30 seconds for testing)
+  simulationInterval = setInterval(() => {
+    try {
+      agentService.simulationTick();
+      console.log(`[Game] Simulation tick at ${new Date().toISOString()}`);
+    } catch (error) {
+      console.error('[Game] Simulation error:', error);
+    }
+  }, 30 * 1000); // 30 seconds for testing (change to 5 * 60 * 1000 for production)
+}

@@ -1,46 +1,5 @@
-// Simplified in-memory agent storage for MVP
-// TODO: Replace with proper database when deploying
-
-interface Agent {
-  id: string;
-  owner: string;
-  name: string;
-  animal: string;
-  status: 'alive' | 'dead' | 'resting';
-  health: number;
-  hunger: number;
-  food: number;
-  wood: number;
-  stone: number;
-  gold: number;
-  baseLevel: number;
-  totalEarned: number;
-  dailyVolume: number;
-  dailyMarketCap: number;
-  weeklyRank: number;
-  createdAt: number;
-  lastActionAt: number;
-  deathAt?: number;
-}
-
-interface Launch {
-  id: string;
-  agentId: string;
-  tokenName: string;
-  tokenSymbol: string;
-  initialSupply: number;
-  agentEarned: number;
-  treasuryEarned: number;
-  tradingVolume: number;
-  marketCap: number;
-  launchedAt: number;
-  tokenAddress?: string;
-}
-
-// In-memory storage
-const agents = new Map<string, Agent>();
-const launches = new Map<string, Launch>();
-let agentSequence = 0;
+import { storage, type Agent } from './storage';
+import crypto from 'crypto';
 
 const ANIMALS = [
   'LION', 'TIGER', 'PANTHER', 'WOLF', 'BEAR',
@@ -56,13 +15,12 @@ function hashToAnimal(hash: string): string {
 export const agentService = {
   mintAgent(owner: string, name: string): Agent {
     // Check if name exists
-    for (const agent of agents.values()) {
-      if (agent.name === name) {
-        throw new Error('Agent name already taken');
-      }
+    const existing = storage.getAgents().find((a) => a.name === name);
+    if (existing) {
+      throw new Error('Agent name already taken');
     }
 
-    const agentId = `agent-${++agentSequence}-${Date.now()}`;
+    const agentId = crypto.randomUUID();
     const animal = hashToAnimal(agentId);
     const now = Date.now();
 
@@ -85,106 +43,79 @@ export const agentService = {
       weeklyRank: 999,
       createdAt: now,
       lastActionAt: now,
+      lastSimulationTick: now,
     };
 
-    agents.set(agentId, agent);
+    storage.addAgent(agent);
     return agent;
   },
 
   getAgent(agentId: string): Agent | undefined {
-    return agents.get(agentId);
+    return storage.getAgent(agentId);
   },
 
   getAgentsByOwner(owner: string): Agent[] {
-    const result = [];
-    for (const agent of agents.values()) {
-      if (agent.owner === owner) {
-        result.push(agent);
-      }
-    }
-    return result;
-  },
-
-  launchToken(
-    agentId: string,
-    tokenName: string,
-    tokenSymbol: string,
-    initialSupply: number,
-    agentEarned: number,
-  ): Launch {
-    const agent = agents.get(agentId);
-    if (!agent) throw new Error('Agent not found');
-    if (agent.status !== 'alive') throw new Error('Agent is dead');
-
-    const launchId = `launch-${Date.now()}`;
-    const now = Date.now();
-
-    const launch: Launch = {
-      id: launchId,
-      agentId,
-      tokenName,
-      tokenSymbol,
-      initialSupply,
-      agentEarned,
-      treasuryEarned: agentEarned * 0.4 / 0.6,
-      tradingVolume: 0,
-      marketCap: 0,
-      launchedAt: now,
-    };
-
-    launches.set(launchId, launch);
-
-    // Update agent
-    agent.totalEarned += agentEarned;
-    agent.lastActionAt = now;
-
-    return launch;
-  },
-
-  getAgentLaunches(agentId: string, limit = 50): Launch[] {
-    const result = [];
-    for (const launch of launches.values()) {
-      if (launch.agentId === agentId) {
-        result.push(launch);
-      }
-    }
-    return result.sort((a, b) => b.launchedAt - a.launchedAt).slice(0, limit);
+    return storage.getAgents().filter((a) => a.owner === owner);
   },
 
   getLeaderboard(limit = 100): Agent[] {
-    const aliveAgents = Array.from(agents.values())
-      .filter((a) => a.status === 'alive')
-      .sort((a, b) => b.dailyVolume - a.dailyVolume || b.dailyMarketCap - a.dailyMarketCap);
-
-    // Update ranks
-    aliveAgents.forEach((agent, i) => {
-      agent.weeklyRank = i + 1;
-    });
-
-    return aliveAgents.slice(0, limit);
+    return storage.getLeaderboard(limit);
   },
 
-  updateAgentHealth(agentId: string, delta: number): void {
-    const agent = agents.get(agentId);
-    if (agent) {
-      agent.health = Math.max(0, Math.min(100, agent.health + delta));
-      if (agent.health === 0) {
-        agent.status = 'dead';
-        agent.deathAt = Date.now();
-      }
-      agent.lastActionAt = Date.now();
-    }
-  },
-
-  updateAgentResources(agentId: string, resources: Partial<Omit<Agent, keyof typeof resources>>): void {
-    const agent = agents.get(agentId);
-    if (agent) {
-      Object.assign(agent, resources);
-      agent.lastActionAt = Date.now();
-    }
+  updateAgent(agentId: string, updates: Partial<Agent>) {
+    storage.updateAgent(agentId, updates);
   },
 
   getAllAgents(): Agent[] {
-    return Array.from(agents.values());
+    return storage.getAgents();
+  },
+
+  // Simulation tick - called every 5 minutes
+  simulationTick() {
+    const now = Date.now();
+    const agents = storage.getAgents();
+
+    for (const agent of agents) {
+      if (agent.status !== 'alive') continue;
+
+      // Gather resources
+      const foodGain = Math.round(10 * (1 + (agent.baseLevel - 1) * 0.1) + (Math.random() - 0.5) * 4);
+      const woodGain = Math.round(8 * (1 + (agent.baseLevel - 1) * 0.1) + (Math.random() - 0.5) * 3);
+      const stoneGain = Math.round(5 * (1 + (agent.baseLevel - 1) * 0.1) + (Math.random() - 0.5) * 2);
+
+      // Consume resources
+      const foodConsume = 5;
+      const woodConsume = 2;
+
+      // Update hunger
+      const newHunger = Math.max(0, agent.hunger - 8);
+
+      // Calculate health changes
+      let healthDelta = 2; // Base recovery
+      if (newHunger < 20) {
+        healthDelta -= 5; // Starvation damage
+      } else if (newHunger < 50) {
+        healthDelta -= 1; // Slow loss
+      }
+
+      const newHealth = Math.max(0, Math.min(100, agent.health + healthDelta));
+      const newStatus = newHealth === 0 ? 'dead' : 'alive';
+
+      // Update agent
+      storage.updateAgent(agent.id, {
+        food: Math.max(0, agent.food + foodGain - foodConsume),
+        wood: Math.max(0, agent.wood + woodGain - woodConsume),
+        stone: agent.stone + stoneGain,
+        health: newHealth,
+        hunger: newHunger,
+        status: newStatus as 'alive' | 'dead',
+        lastActionAt: now,
+        lastSimulationTick: now,
+        deathAt: newStatus === 'dead' ? now : undefined,
+      });
+    }
+
+    // Update leaderboard
+    storage.updateLeaderboard();
   },
 };
