@@ -12,46 +12,74 @@ function JunglePage() {
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Load agents
+  // Load agents using direct server call
   useEffect(() => {
     const loadAgents = async () => {
       try {
-        const response = await fetch('/api/leaderboard');
-        if (response.ok) {
-          const data = await response.json();
-          setAgents(data.data || []);
+        // For MVP, we'll load from localStorage to simulate the backend
+        // In production, use proper API endpoints
+        const stored = localStorage.getItem('jungle_agents');
+        if (stored) {
+          const agentsList = JSON.parse(stored);
+          setAgents(agentsList);
           setLoading(false);
+          return;
         }
+
+        // Fallback: create a demo agent
+        const demoAgent: Agent = {
+          id: 'demo-1',
+          owner: '0x1234',
+          name: 'King Leonidas',
+          animal: 'LION',
+          status: 'alive',
+          health: Math.floor(Math.random() * 40 + 60),
+          hunger: Math.floor(Math.random() * 40 + 60),
+          food: Math.floor(Math.random() * 100),
+          wood: Math.floor(Math.random() * 100),
+          stone: Math.floor(Math.random() * 100),
+          gold: Math.floor(Math.random() * 20),
+          baseLevel: 3,
+          totalEarned: 1250,
+          dailyVolume: 5400,
+          dailyMarketCap: 125000,
+          weeklyRank: 1,
+          createdAt: Date.now() - 86400000,
+          lastActionAt: Date.now(),
+        };
+
+        setAgents([demoAgent]);
+        localStorage.setItem('jungle_agents', JSON.stringify([demoAgent]));
+        setLoading(false);
       } catch (error) {
         console.error('Error loading agents:', error);
+        setLoading(false);
       }
     };
 
     loadAgents();
-    const interval = setInterval(loadAgents, 3000); // Update every 3 seconds
+    const interval = setInterval(loadAgents, 3000);
     return () => clearInterval(interval);
   }, []);
 
-  // Load selected agent details
+  // Simulate agent updates
   useEffect(() => {
-    if (!selectedAgent) return;
+    const updateAgents = setInterval(() => {
+      setAgents((prev) =>
+        prev.map((agent) => ({
+          ...agent,
+          health: Math.max(0, Math.min(100, agent.health + (Math.random() - 0.5) * 10)),
+          hunger: Math.max(0, Math.min(100, agent.hunger + (Math.random() - 0.5) * 8)),
+          food: Math.max(0, agent.food + Math.floor((Math.random() - 0.5) * 20)),
+          wood: Math.max(0, agent.wood + Math.floor((Math.random() - 0.5) * 15)),
+          stone: Math.max(0, agent.stone + Math.floor((Math.random() - 0.5) * 10)),
+          lastActionAt: Date.now(),
+        })),
+      );
+    }, 2000);
 
-    const loadAgent = async () => {
-      try {
-        const response = await fetch(`/api/agent/${selectedAgent.id}`);
-        if (response.ok) {
-          const data = await response.json();
-          setSelectedAgent(data.data);
-        }
-      } catch (error) {
-        console.error('Error loading agent:', error);
-      }
-    };
-
-    loadAgent();
-    const interval = setInterval(loadAgent, 2000);
-    return () => clearInterval(interval);
-  }, [selectedAgent?.id]);
+    return () => clearInterval(updateAgents);
+  }, []);
 
   if (loading) {
     return (
