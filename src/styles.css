@@ -1,0 +1,180 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * KING OF THE JUNGLE — design system.
+ * Near-black night, deep jungle greens, muted gold, ivory type, danger red.
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-gold: var(--gold);
+  --color-gold-dim: var(--gold-dim);
+  --color-jungle: var(--jungle);
+  --color-jungle-deep: var(--jungle-deep);
+  --color-jungle-light: var(--jungle-light);
+  --color-danger: var(--danger);
+  --color-ivory: var(--ivory);
+  --font-display: "Cinzel", Georgia, serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+:root {
+  --radius: 0.25rem;
+  --background: oklch(0.16 0.018 150);
+  --foreground: oklch(0.95 0.012 90);
+  --card: oklch(0.2 0.022 152);
+  --card-foreground: oklch(0.95 0.012 90);
+  --popover: oklch(0.19 0.02 152);
+  --popover-foreground: oklch(0.95 0.012 90);
+  --primary: oklch(0.78 0.11 88);
+  --primary-foreground: oklch(0.16 0.018 150);
+  --secondary: oklch(0.26 0.03 155);
+  --secondary-foreground: oklch(0.95 0.012 90);
+  --muted: oklch(0.24 0.026 155);
+  --muted-foreground: oklch(0.68 0.02 120);
+  --accent: oklch(0.32 0.05 150);
+  --accent-foreground: oklch(0.95 0.012 90);
+  --destructive: oklch(0.52 0.19 25);
+  --destructive-foreground: oklch(0.96 0.01 90);
+  --border: oklch(0.3 0.028 150);
+  --input: oklch(0.3 0.028 150);
+  --ring: oklch(0.78 0.11 88);
+  --gold: oklch(0.78 0.11 88);
+  --gold-dim: oklch(0.6 0.07 88);
+  --jungle: oklch(0.42 0.09 148);
+  --jungle-deep: oklch(0.24 0.05 152);
+  --jungle-light: oklch(0.62 0.11 142);
+  --danger: oklch(0.55 0.19 25);
+  --ivory: oklch(0.96 0.015 90);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@utility display-xl {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+@utility label-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--color-muted-foreground);
+}
+
+@utility gold-rule {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-gold-dim),
+    transparent
+  );
+  height: 1px;
+}
+
+@utility vignette {
+  background: radial-gradient(
+    ellipse at center,
+    transparent 35%,
+    color-mix(in oklab, var(--background) 92%, transparent) 100%
+  );
+}
+
+@keyframes eye-blink {
+  0%,
+  88%,
+  100% {
+    transform: scaleY(1);
+  }
+  92% {
+    transform: scaleY(0.08);
+  }
+}
+
+@keyframes fog-drift {
+  from {
+    transform: translate3d(-8%, 0, 0);
+  }
+  to {
+    transform: translate3d(8%, 0, 0);
+  }
+}
+
+@keyframes leaf-sway {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(14px) rotate(4deg);
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility animate-eye {
+  animation: eye-blink 6s ease-in-out infinite;
+}
+
+@utility animate-fog {
+  animation: fog-drift 26s ease-in-out infinite alternate;
+}
+
+@utility animate-leaf {
+  animation: leaf-sway 12s ease-in-out infinite;
+}
+
+@utility animate-rise {
+  animation: rise-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
