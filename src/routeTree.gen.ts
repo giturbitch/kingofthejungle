@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiRouteImport } from './routes/api'
+import { Route as JungleRouteImport } from './routes/jungle'
 import { Route as TestRouteImport } from './routes/test'
 
 const IndexRoute = IndexRouteImport.update({
@@ -23,6 +24,11 @@ const ApiRoute = ApiRouteImport.update({
   path: '/api',
   getParentRoute: () => rootRouteImport,
 } as any)
+const JungleRoute = JungleRouteImport.update({
+  id: '/jungle',
+  path: '/jungle',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TestRoute = TestRouteImport.update({
   id: '/test',
   path: '/test',
@@ -32,30 +38,34 @@ const TestRoute = TestRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api': typeof ApiRoute
+  '/jungle': typeof JungleRoute
   '/test': typeof TestRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api': typeof ApiRoute
+  '/jungle': typeof JungleRoute
   '/test': typeof TestRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/api': typeof ApiRoute
+  '/jungle': typeof JungleRoute
   '/test': typeof TestRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api' | '/test'
+  fullPaths: '/' | '/api' | '/jungle' | '/test'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api' | '/test'
-  id: '__root__' | '/' | '/api' | '/test'
+  to: '/' | '/api' | '/jungle' | '/test'
+  id: '__root__' | '/' | '/api' | '/jungle' | '/test'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiRoute: typeof ApiRoute
+  JungleRoute: typeof JungleRoute
   TestRoute: typeof TestRoute
 }
 
@@ -75,6 +85,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/jungle': {
+      id: '/jungle'
+      path: '/jungle'
+      fullPath: '/jungle'
+      preLoaderRoute: typeof JungleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/test': {
       id: '/test'
       path: '/test'
@@ -88,6 +105,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiRoute: ApiRoute,
+  JungleRoute: JungleRoute,
   TestRoute: TestRoute,
 }
 export const routeTree = rootRouteImport
