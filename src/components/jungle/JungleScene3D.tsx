@@ -98,7 +98,7 @@ export function JungleScene3D({ agents, selectedAgentId, onAgentClick }: JungleS
     scene.add(terrain);
 
     // Add trees with better details
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 50; i++) {
       const treeHeight = Math.random() * 40 + 30;
       const trunkHeight = treeHeight * 0.3;
 
@@ -135,6 +135,91 @@ export function JungleScene3D({ agents, selectedAgentId, onAgentClick }: JungleS
       );
 
       scene.add(treeGroup);
+    }
+
+    // Add campfires in different spots
+    for (let i = 0; i < 8; i++) {
+      const angle = (i / 8) * Math.PI * 2;
+      const distance = Math.random() * 60 + 50;
+      const x = Math.cos(angle) * distance;
+      const z = Math.sin(angle) * distance;
+
+      // Fire pit (rocks)
+      for (let j = 0; j < 4; j++) {
+        const rockGeometry = new THREE.BoxGeometry(2, 1, 2);
+        const rockMaterial = new THREE.MeshStandardMaterial({ color: 0x444444 });
+        const rock = new THREE.Mesh(rockGeometry, rockMaterial);
+        rock.castShadow = true;
+        rock.position.set(
+          x + Math.cos(j * Math.PI / 2) * 3,
+          0.5,
+          z + Math.sin(j * Math.PI / 2) * 3,
+        );
+        scene.add(rock);
+      }
+
+      // Fire flames (cone)
+      const flameGeometry = new THREE.ConeGeometry(2, 4, 8);
+      const flameMaterial = new THREE.MeshStandardMaterial({
+        color: 0xff6600,
+        emissive: 0xff3300,
+        emissiveIntensity: 1,
+      });
+      const flame = new THREE.Mesh(flameGeometry, flameMaterial);
+      flame.position.set(x, 2, z);
+      flame.castShadow = true;
+      (flame as any).userData.isFire = true;
+      scene.add(flame);
+
+      // Light from fire
+      const fireLight = new THREE.PointLight(0xff6600, 1, 50);
+      fireLight.position.set(x, 3, z);
+      fireLight.castShadow = true;
+      scene.add(fireLight);
+    }
+
+    // Add camp tents
+    for (let i = 0; i < 6; i++) {
+      const angle = (i / 6) * Math.PI * 2 + Math.PI / 6;
+      const distance = Math.random() * 50 + 60;
+      const x = Math.cos(angle) * distance;
+      const z = Math.sin(angle) * distance;
+
+      // Tent pole
+      const poleGeometry = new THREE.CylinderGeometry(0.5, 0.5, 3, 8);
+      const poleMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
+      const pole = new THREE.Mesh(poleGeometry, poleMaterial);
+      pole.position.set(x, 1.5, z);
+      pole.castShadow = true;
+      scene.add(pole);
+
+      // Tent canvas
+      const tentGeometry = new THREE.ConeGeometry(4, 5, 16);
+      const tentMaterial = new THREE.MeshStandardMaterial({
+        color: 0xcc6633,
+        roughness: 0.8,
+      });
+      const tent = new THREE.Mesh(tentGeometry, tentMaterial);
+      tent.position.set(x, 2.5, z);
+      tent.castShadow = true;
+      tent.receiveShadow = true;
+      scene.add(tent);
+    }
+
+    // Add roaming wild animals
+    const roamingAnimals: any[] = [];
+    for (let i = 0; i < 5; i++) {
+      const wildAnimal = createWildAnimal();
+      wildAnimal.position.set(
+        (Math.random() - 0.5) * 250,
+        5,
+        (Math.random() - 0.5) * 250,
+      );
+      wildAnimal.userData.targetX = (Math.random() - 0.5) * 250;
+      wildAnimal.userData.targetZ = (Math.random() - 0.5) * 250;
+      wildAnimal.userData.speed = Math.random() * 0.02 + 0.01;
+      scene.add(wildAnimal);
+      roamingAnimals.push(wildAnimal);
     }
 
     // Create particle system for atmosphere
@@ -396,6 +481,32 @@ export function JungleScene3D({ agents, selectedAgentId, onAgentClick }: JungleS
   }, [selectedAgentId, onAgentClick, agents]);
 
   return <div ref={containerRef} className="w-full h-screen" />;
+}
+
+function createWildAnimal(): THREE.Group {
+  const group = new THREE.Group();
+  const animals = ['LION', 'TIGER', 'PANTHER', 'EAGLE', 'BOAR', 'WOLF'];
+  const animal = animals[Math.floor(Math.random() * animals.length)];
+
+  const bodyGeometry = new THREE.BoxGeometry(2, 2, 4);
+  const bodyMaterial = new THREE.MeshStandardMaterial({
+    color: getAnimalColor(animal),
+    roughness: 0.6,
+  });
+  const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+  body.castShadow = true;
+  body.receiveShadow = true;
+  group.add(body);
+
+  const headGeometry = new THREE.SphereGeometry(1.2, 12, 12);
+  const head = new THREE.Mesh(headGeometry, bodyMaterial);
+  head.castShadow = true;
+  head.position.z = 2.5;
+  head.position.y = 0.5;
+  group.add(head);
+
+  group.userData.isWildAnimal = true;
+  return group;
 }
 
 function getAnimalColor(animal: string): number {
