@@ -206,21 +206,41 @@ export function JungleScene3D({ agents, selectedAgentId, onAgentClick }: JungleS
       scene.add(tent);
     }
 
-    // Add roaming wild animals
+    // Add roaming wild animals on the periphery (as threats)
     const roamingAnimals: any[] = [];
     for (let i = 0; i < 5; i++) {
       const wildAnimal = createWildAnimal();
+      // Position on periphery, away from camp
+      const angle = (i / 5) * Math.PI * 2;
+      const distance = 150 + Math.random() * 50;
       wildAnimal.position.set(
-        (Math.random() - 0.5) * 250,
+        Math.cos(angle) * distance,
         5,
-        (Math.random() - 0.5) * 250,
+        Math.sin(angle) * distance,
       );
-      wildAnimal.userData.targetX = (Math.random() - 0.5) * 250;
-      wildAnimal.userData.targetZ = (Math.random() - 0.5) * 250;
+      wildAnimal.userData.targetX = Math.cos(angle + Math.random()) * distance;
+      wildAnimal.userData.targetZ = Math.sin(angle + Math.random()) * distance;
       wildAnimal.userData.speed = Math.random() * 0.02 + 0.01;
       scene.add(wildAnimal);
       roamingAnimals.push(wildAnimal);
     }
+
+    // Add camp circle marker (visual boundary for survivor camp)
+    const campCircleGeometry = new THREE.BufferGeometry();
+    const campCirclePoints = [];
+    for (let i = 0; i <= 64; i++) {
+      const angle = (i / 64) * Math.PI * 2;
+      const radius = 80;
+      campCirclePoints.push(
+        Math.cos(angle) * radius,
+        0.1,
+        Math.sin(angle) * radius,
+      );
+    }
+    campCircleGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(campCirclePoints), 3));
+    const campCircleMaterial = new THREE.LineBasicMaterial({ color: 0x44aa44, linewidth: 2 });
+    const campCircle = new THREE.Line(campCircleGeometry, campCircleMaterial);
+    scene.add(campCircle);
 
     // Create particle system for atmosphere
     const particleCount = 500;
@@ -323,9 +343,9 @@ export function JungleScene3D({ agents, selectedAgentId, onAgentClick }: JungleS
       (bar as any).userData.healthBar = true;
       (bar as any).userData.maxScale = 5;
 
-      // Position agents in circle
+      // Position agents in survivor camp circle (center)
       const angle = Math.random() * Math.PI * 2;
-      const distance = Math.random() * 70 + 25;
+      const distance = Math.random() * 35 + 10; // Closer to center/camp
       group.position.x = Math.cos(angle) * distance;
       group.position.z = Math.sin(angle) * distance;
 
