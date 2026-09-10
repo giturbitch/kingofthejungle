@@ -205,19 +205,21 @@ function JunglePage() {
   }
 
   return (
-    <div className="w-full h-screen bg-slate-900 relative overflow-hidden">
-      {/* 3D Jungle Scene */}
-      <JungleScene3D
-        agents={agents}
-        selectedAgentId={selectedAgent?.id}
-        onAgentClick={(agentId) => {
-          const agent = agents.find((a) => a.id === agentId);
-          if (agent) setSelectedAgent(agent);
-        }}
-      />
+    <div className="w-full h-screen bg-slate-900 relative overflow-hidden pointer-events-none">
+      {/* 3D Jungle Scene - Full screen interactive */}
+      <div className="w-full h-full pointer-events-auto">
+        <JungleScene3D
+          agents={agents}
+          selectedAgentId={selectedAgent?.id}
+          onAgentClick={(agentId) => {
+            const agent = agents.find((a) => a.id === agentId);
+            if (agent) setSelectedAgent(agent);
+          }}
+        />
+      </div>
 
       {/* Top Navigation */}
-      <div className="absolute top-0 left-0 right-0 bg-slate-950/80 border-b border-amber-900/30 backdrop-blur-sm pointer-events-none z-50">
+      <div className="absolute top-0 left-0 right-0 bg-slate-950/80 border-b border-amber-900/30 backdrop-blur-sm pointer-events-auto z-50">
         <div className="max-w-7xl mx-auto flex items-center justify-between p-4">
           <div className="flex items-center space-x-8 pointer-events-auto">
             <button
