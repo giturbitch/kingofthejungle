@@ -245,14 +245,14 @@ function JunglePage() {
             {!walletAddress ? (
               <button
                 onClick={handleConnectWallet}
-                className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold rounded-lg shadow-lg transition-all hover:scale-105 drop-shadow-lg"
+                className="w-full px-6 py-3 bg-amber-900/60 hover:bg-amber-900/80 text-white font-bold rounded-lg shadow-lg transition-all hover:scale-105 drop-shadow-lg border border-amber-700/60"
               >
                 🔗 Connect Wallet
               </button>
             ) : (
-              <form onSubmit={handleMint} className="bg-gradient-to-br from-green-900/40 to-emerald-900/40 backdrop-blur-sm border border-green-600/50 rounded-lg p-4 space-y-3">
-                <div className="text-xs text-gray-300">Your Address</div>
-                <div className="font-mono text-xs text-green-300 truncate bg-slate-900/50 p-2 rounded border border-green-600/30">{walletAddress.slice(0, 10)}...{walletAddress.slice(-8)}</div>
+              <form onSubmit={handleMint} className="bg-slate-900/40 backdrop-blur-sm border border-amber-900/40 rounded-lg p-4 space-y-3">
+                <div className="text-xs text-amber-200">Your Address</div>
+                <div className="font-mono text-xs text-amber-300 truncate bg-slate-800/60 p-2 rounded border border-amber-900/30">{walletAddress.slice(0, 10)}...{walletAddress.slice(-8)}</div>
 
                 <input
                   type="text"
@@ -260,13 +260,13 @@ function JunglePage() {
                   onChange={(e) => setMintName(e.target.value)}
                   placeholder="Survivor name"
                   disabled={minting}
-                  className="w-full bg-slate-800/80 border border-green-600/30 rounded px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-green-500 focus:outline-none disabled:opacity-50"
+                  className="w-full bg-slate-800/60 border border-amber-900/40 rounded px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-amber-700 focus:outline-none disabled:opacity-50"
                 />
 
                 <button
                   type="submit"
                   disabled={minting || !mintName.trim()}
-                  className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 text-white font-bold py-2 rounded text-sm transition-all"
+                  className="w-full bg-amber-900/60 hover:bg-amber-900/80 disabled:opacity-50 text-white font-bold py-2 rounded text-sm transition-all border border-amber-700/60"
                 >
                   {minting ? '⏳ Minting...' : '🦁 Mint Survivor'}
                 </button>
@@ -274,8 +274,8 @@ function JunglePage() {
                 {mintMessage && (
                   <div className={`text-xs p-2 rounded border ${
                     mintMessage.startsWith('✅')
-                      ? 'bg-green-600/40 text-green-200 border-green-600/50'
-                      : 'bg-red-600/40 text-red-200 border-red-600/50'
+                      ? 'bg-amber-900/40 text-amber-200 border-amber-900/50'
+                      : 'bg-red-900/40 text-red-200 border-red-900/50'
                   }`}>
                     {mintMessage}
                   </div>
@@ -287,9 +287,9 @@ function JunglePage() {
               </form>
             )}
 
-            <div className="bg-gradient-to-br from-yellow-900/40 to-orange-900/40 backdrop-blur-sm border border-yellow-600/50 rounded-lg p-4">
-              <div className="text-xs text-gray-300 uppercase tracking-widest">24h Hunts Volume</div>
-              <div className="text-3xl font-black text-yellow-300 drop-shadow-lg">
+            <div className="bg-slate-900/30 backdrop-blur-sm border border-amber-900/40 rounded-lg p-4">
+              <div className="text-xs text-amber-600 uppercase tracking-widest">24h Hunt Volume</div>
+              <div className="text-3xl font-black text-amber-100 drop-shadow-lg">
                 ${agents.reduce((sum, a) => sum + a.dailyVolume, 0).toFixed(0)}
               </div>
             </div>
@@ -315,15 +315,15 @@ function JunglePage() {
                 onClick={() => setSelectedAgent(agent)}
                 className={`group p-4 rounded-lg cursor-pointer transition-all duration-200 backdrop-blur-sm ${
                   selectedAgent?.id === agent.id
-                    ? 'bg-gradient-to-r from-blue-600/50 to-blue-500/30 border border-blue-400/50 scale-105'
-                    : 'bg-slate-800/40 hover:bg-slate-700/50 border border-slate-700/50 hover:border-amber-600/30'
+                    ? 'bg-amber-900/40 border border-amber-700/60 scale-105'
+                    : 'bg-slate-800/40 hover:bg-slate-700/50 border border-slate-700/50 hover:border-amber-700/40'
                 }`}
               >
                 <div className="flex items-start space-x-3">
                   <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-black text-sm ${
-                    i === 0 ? 'bg-yellow-500/80 text-slate-900' :
-                    i === 1 ? 'bg-gray-400/80 text-slate-900' :
-                    i === 2 ? 'bg-orange-600/80 text-white' :
+                    i === 0 ? 'bg-amber-600/80 text-white' :
+                    i === 1 ? 'bg-amber-500/60 text-white' :
+                    i === 2 ? 'bg-amber-700/60 text-white' :
                     'bg-slate-700/50 text-gray-300'
                   }`}>
                     {i + 1}
