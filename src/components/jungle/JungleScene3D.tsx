@@ -80,7 +80,7 @@ export function JungleScene3D({ agents, selectedAgentId, onAgentClick }: JungleS
     for (let i = 0; i < posArray.length; i += 3) {
       const x = posArray[i];
       const y = posArray[i + 1];
-      const z = posArray[i + 2];
+      let z = posArray[i + 2];
 
       // Multi-octave noise for natural terrain
       z = Math.sin(x * 0.015) * Math.cos(y * 0.015) * 8 +
