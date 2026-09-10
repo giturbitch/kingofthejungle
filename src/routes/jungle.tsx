@@ -216,17 +216,35 @@ function JunglePage() {
         }}
       />
 
+      {/* Top Navigation */}
+      <div className="absolute top-0 left-0 right-0 bg-slate-950/80 border-b border-amber-900/30 backdrop-blur-sm pointer-events-none z-50">
+        <div className="max-w-7xl mx-auto flex items-center justify-between p-4">
+          <div className="flex items-center space-x-8 pointer-events-auto">
+            <button
+              onClick={() => navigate({ to: '/' })}
+              className="text-amber-300 hover:text-amber-400 font-bold transition-all"
+            >
+              🦁 JUNGLE PREDATORS
+            </button>
+            <div className="flex space-x-6">
+              <button className="text-amber-100 hover:text-amber-300 font-bold transition-all">Jungle</button>
+              <button onClick={() => navigate({ to: '/test' })} className="text-gray-400 hover:text-amber-300 font-bold transition-all">War Room</button>
+            </div>
+          </div>
+          <button
+            onClick={() => navigate({ to: '/' })}
+            className="px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 border border-amber-700/40 rounded text-sm font-bold text-amber-300 transition-all pointer-events-auto"
+          >
+            ← Home
+          </button>
+        </div>
+      </div>
+
       {/* Top Header */}
-      <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-slate-950/90 via-slate-950/50 to-transparent p-8 pointer-events-none">
+      <div className="absolute top-16 left-0 right-0 bg-gradient-to-b from-slate-950/90 via-slate-950/50 to-transparent p-8 pointer-events-none">
         <div className="max-w-7xl mx-auto flex justify-between items-start">
           {/* Title */}
           <div className="space-y-2 pointer-events-auto">
-            <button
-              onClick={() => navigate({ to: '/' })}
-              className="mb-3 px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 border border-amber-600/30 hover:border-amber-600/50 rounded-lg text-sm font-bold text-amber-300 transition-all"
-            >
-              ← Back to Home
-            </button>
             <div className="flex items-center space-x-3">
               <div className="text-5xl drop-shadow-2xl">🦁</div>
               <div>
