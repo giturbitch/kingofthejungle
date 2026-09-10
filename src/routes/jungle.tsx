@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useState, useEffect } from 'react';
 import { JungleScene3D } from '../components/jungle/JungleScene3D';
 import type { Agent } from '../server/storage';
@@ -8,11 +8,15 @@ export const Route = createFileRoute('/jungle')({
 });
 
 function JunglePage() {
+  const navigate = useNavigate();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const [loading, setLoading] = useState(true);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [userAgents, setUserAgents] = useState<Agent[]>([]);
+  const [mintName, setMintName] = useState('');
+  const [minting, setMinting] = useState(false);
+  const [mintMessage, setMintMessage] = useState('');
 
   // Simulate wallet connection
   const handleConnectWallet = () => {
@@ -22,6 +26,60 @@ function JunglePage() {
     // Filter agents owned by this wallet
     const owned = agents.filter(a => a.owner === mockAddress || Math.random() > 0.7);
     setUserAgents(owned.length > 0 ? owned : [agents[0]]);
+  };
+
+  // Mint survivor
+  const handleMint = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!walletAddress) {
+      setMintMessage('❌ Connect wallet first');
+      return;
+    }
+
+    if (!mintName.trim()) {
+      setMintMessage('❌ Enter a survivor name');
+      return;
+    }
+
+    if (agents.some(a => a.name.toLowerCase() === mintName.toLowerCase())) {
+      setMintMessage('❌ That name is taken!');
+      return;
+    }
+
+    setMinting(true);
+    setMintMessage('');
+    await new Promise(resolve => setTimeout(resolve, 800));
+
+    const animals = ['LION', 'TIGER', 'PANTHER', 'WOLF', 'BEAR', 'GORILLA', 'EAGLE', 'BOAR'];
+    const newAgent: Agent = {
+      id: `survivor-${Date.now()}`,
+      owner: walletAddress,
+      name: mintName,
+      animal: animals[Math.floor(Math.random() * animals.length)],
+      status: 'alive',
+      health: 100,
+      hunger: 100,
+      food: 50,
+      wood: 30,
+      stone: 20,
+      gold: 0,
+      baseLevel: 1,
+      totalEarned: 0,
+      dailyVolume: 0,
+      dailyMarketCap: 0,
+      weeklyRank: agents.length + 1,
+      createdAt: Date.now(),
+      lastActionAt: Date.now(),
+    };
+
+    const updated = [...agents, newAgent];
+    setAgents(updated);
+    localStorage.setItem('jungle_agents', JSON.stringify(updated));
+    setMintMessage(`✅ ${newAgent.name} the ${newAgent.animal} has entered the jungle!`);
+    setMintName('');
+    setSelectedAgent(newAgent);
+    setMinting(false);
   };
 
   // Load agents
@@ -162,35 +220,71 @@ function JunglePage() {
       <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-slate-950/90 via-slate-950/50 to-transparent p-8 pointer-events-none">
         <div className="max-w-7xl mx-auto flex justify-between items-start">
           {/* Title */}
-          <div className="space-y-2">
+          <div className="space-y-2 pointer-events-auto">
+            <button
+              onClick={() => navigate({ to: '/' })}
+              className="mb-3 px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 border border-amber-600/30 hover:border-amber-600/50 rounded-lg text-sm font-bold text-amber-300 transition-all"
+            >
+              ← Back to Home
+            </button>
             <div className="flex items-center space-x-3">
               <div className="text-5xl drop-shadow-2xl">🦁</div>
               <div>
                 <h1 className="text-5xl font-black text-white drop-shadow-2xl tracking-wider">
-                  KING OF THE JUNGLE
+                  JUNGLE PREDATORS
                 </h1>
                 <p className="text-green-300 font-bold drop-shadow-lg text-sm">
-                  {agents.filter((a) => a.status === 'alive').length} Survivors in the Wild
+                  {agents.filter((a) => a.status === 'alive').length} Active Survivors Hunting
                 </p>
               </div>
             </div>
           </div>
 
           {/* Wallet & Stats */}
-          <div className="space-y-4 pointer-events-auto">
+          <div className="space-y-4 pointer-events-auto w-80">
             {!walletAddress ? (
               <button
                 onClick={handleConnectWallet}
-                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold rounded-lg shadow-lg transition-all hover:scale-105 drop-shadow-lg"
+                className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold rounded-lg shadow-lg transition-all hover:scale-105 drop-shadow-lg"
               >
                 🔗 Connect Wallet
               </button>
             ) : (
-              <div className="bg-gradient-to-br from-purple-900/40 to-blue-900/40 backdrop-blur-sm border border-purple-600/50 rounded-lg p-4">
+              <form onSubmit={handleMint} className="bg-gradient-to-br from-green-900/40 to-emerald-900/40 backdrop-blur-sm border border-green-600/50 rounded-lg p-4 space-y-3">
                 <div className="text-xs text-gray-300">Your Address</div>
-                <div className="font-mono text-sm text-purple-300 truncate">{walletAddress.slice(0, 10)}...{walletAddress.slice(-8)}</div>
-                <div className="text-xs text-gray-400 mt-2">Survivors Owned: {userAgents.length}</div>
-              </div>
+                <div className="font-mono text-xs text-green-300 truncate bg-slate-900/50 p-2 rounded border border-green-600/30">{walletAddress.slice(0, 10)}...{walletAddress.slice(-8)}</div>
+
+                <input
+                  type="text"
+                  value={mintName}
+                  onChange={(e) => setMintName(e.target.value)}
+                  placeholder="Survivor name"
+                  disabled={minting}
+                  className="w-full bg-slate-800/80 border border-green-600/30 rounded px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-green-500 focus:outline-none disabled:opacity-50"
+                />
+
+                <button
+                  type="submit"
+                  disabled={minting || !mintName.trim()}
+                  className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 text-white font-bold py-2 rounded text-sm transition-all"
+                >
+                  {minting ? '⏳ Minting...' : '🦁 Mint Survivor'}
+                </button>
+
+                {mintMessage && (
+                  <div className={`text-xs p-2 rounded border ${
+                    mintMessage.startsWith('✅')
+                      ? 'bg-green-600/40 text-green-200 border-green-600/50'
+                      : 'bg-red-600/40 text-red-200 border-red-600/50'
+                  }`}>
+                    {mintMessage}
+                  </div>
+                )}
+
+                <div className="text-xs text-gray-400 pt-2 border-t border-green-600/30">
+                  Survivors: {userAgents.length}
+                </div>
+              </form>
             )}
 
             <div className="bg-gradient-to-br from-yellow-900/40 to-orange-900/40 backdrop-blur-sm border border-yellow-600/50 rounded-lg p-4">
